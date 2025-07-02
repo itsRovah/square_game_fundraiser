@@ -38,4 +38,8 @@ Thumbs.db
 *.log
 
 # Documentation
-pawfect-playlist-fundraiser.md 
+pawfect-playlist-fundraiser.md
+
+# Homelab specific (don't commit these)
+.env.homelab
+docker-compose.local.yml 

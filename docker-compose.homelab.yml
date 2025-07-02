@@ -1,0 +1,37 @@
+# Square Game Fundraiser - Homelab Integration
+# Copy the services below into your existing homelab docker-compose.yml
+
+services:
+  fundraiser-web:
+    image: ghcr.io/itsrovah/square_game_fundraiser:latest
+    container_name: fundraiser-web
+    ports:
+      - "5000:5000"  # Change this port if it conflicts with your other services
+    volumes:
+      - fundraiser_uploads:/app/static/uploads
+      - fundraiser_instance:/app/instance
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${FUNDRAISER_SECRET_KEY}
+      - DATABASE_URL=postgresql://fundraiser:${FUNDRAISER_DB_PASSWORD}@fundraiser-db:5432/fundraiser
+      - ADMIN_USERNAME=${FUNDRAISER_ADMIN_USERNAME}
+      - ADMIN_PASSWORD=${FUNDRAISER_ADMIN_PASSWORD}
+    depends_on:
+      - fundraiser-db
+    restart: unless-stopped
+
+  fundraiser-db:
+    image: postgres:15-alpine
+    container_name: fundraiser-db
+    volumes:
+      - fundraiser_postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=fundraiser
+      - POSTGRES_USER=fundraiser
+      - POSTGRES_PASSWORD=${FUNDRAISER_DB_PASSWORD}
+    restart: unless-stopped
+
+volumes:
+  fundraiser_postgres_data:
+  fundraiser_uploads:
+  fundraiser_instance: 
