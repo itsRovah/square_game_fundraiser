@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Manage {{ fundraiser.name }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>{{ fundraiser.name }}</h1>
+            <p class="text-muted">Manage grid squares and track progress</p>
+        </div>
+        <div class="col-auto">
+            <div class="btn-group">
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+                <a href="{{ url_for('public.view_fundraiser', slug=fundraiser.slug) }}" 
+                   class="btn btn-info" target="_blank">
+                    <i class="bi bi-eye"></i> Public View
+                </a>
+                <a href="{{ url_for('admin.export_data', fundraiser_id=fundraiser.id) }}" 
+                   class="btn btn-success">
+                    <i class="bi bi-download"></i> Export
+                </a>
+                <a href="{{ url_for('admin.draw_winner', fundraiser_id=fundraiser.id) }}" 
+                   class="btn btn-warning">
+                    <i class="bi bi-dice-3"></i> Draw Winner
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progress -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Progress: {{ fundraiser.sold_squares }} / {{ fundraiser.total_squares }} squares sold</h5>
+                    <div class="progress" style="height: 30px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ fundraiser.progress_percentage }}%">
+                            {{ fundraiser.progress_percentage }}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Grid -->
+    <div class="admin-grid">
+        <div class="grid-container">
+            <table class="table table-bordered grid-table mx-auto">
+                <tbody>
+                    {% for row in grid %}
+                        <tr>
+                            {% for square in row %}
+                                <td class="grid-square {% if square.is_sold %}sold{% else %}available{% endif %}">
+                                    <a href="{{ url_for('admin.edit_square', square_id=square.id) }}" 
+                                       class="text-decoration-none text-dark d-block h-100">
+                                        <div class="square-content">
+                                            <div class="square-number">#{{ square.position_number }}</div>
+                                            
+                                            {% if square.display_thumbnail_path %}
+                                                <img src="{{ square.display_thumbnail_path | image_url }}" 
+                                                     alt="{{ square.display_name }}" class="content-thumbnail">
+                                            {% else %}
+                                                <div class="no-image">
+                                                    <i class="bi bi-plus-circle"></i>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            {% if square.display_name %}
+                                                <div class="content-name">{{ square.display_name }}</div>
+                                            {% endif %}
+                                            
+                                            {% if square.is_sold %}
+                                                <div class="purchaser-name text-success">
+                                                    <i class="bi bi-check-circle-fill"></i> {{ square.purchaser_name }}
+                                                </div>
+                                                {% if square.song_title %}
+                                                    <div class="song-indicator">
+                                                        <i class="bi bi-music-note"></i>
+                                                    </div>
+                                                {% endif %}
+                                            {% else %}
+                                                <div class="available-label">Click to edit</div>
+                                            {% endif %}
+                                        </div>
+                                    </a>
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Legend -->
+    <div class="mt-4 text-center">
+        <span class="badge bg-success me-2">Sold</span>
+        <span class="badge bg-secondary me-2">Available</span>
+        <span><i class="bi bi-music-note"></i> = Song provided</span>
+    </div>
+</div>
+
+<style>
+.admin-grid .grid-square {
+    min-width: 120px;
+    min-height: 120px;
+    position: relative;
+}
+
+.admin-grid .grid-square:hover {
+    border: 2px solid var(--primary-color);
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.square-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.song-indicator {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    color: var(--info-color);
+}
+</style>
+{% endblock %} 

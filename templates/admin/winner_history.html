@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Winner History - {{ fundraiser.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3><i class="fas fa-trophy"></i> Winner History - {{ fundraiser.name }}</h3>
+                    <a href="{{ url_for('admin.draw_winner', fundraiser_id=fundraiser.id) }}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-dice"></i> Draw New Winner
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if winners %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Draw Date</th>
+                                    <th>Square #</th>
+                                    <th>{{ fundraiser.content_type }} Name</th>
+                                    <th>Winner Name</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for winner in winners %}
+                                <tr>
+                                    <td>{{ winner.draw_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ winner.square.position_number }}</span>
+                                    </td>
+                                    <td>{{ winner.square.display_name or '<em>Not named</em>' }}</td>
+                                    <td>{{ winner.winner_name or 'Anonymous' }}</td>
+                                    <td>{{ winner.notes or '' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <p class="text-muted">
+                            <i class="fas fa-info-circle"></i>
+                            Total winners drawn: {{ winners|length }}
+                        </p>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-trophy fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Winners Yet</h5>
+                        <p class="text-muted">Draw your first winner to see the history here.</p>
+                        <a href="{{ url_for('admin.draw_winner', fundraiser_id=fundraiser.id) }}" 
+                           class="btn btn-primary">
+                            <i class="fas fa-dice"></i> Draw First Winner
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('admin.manage_fundraiser', fundraiser_id=fundraiser.id) }}" 
+                           class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Fundraiser
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

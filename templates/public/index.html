@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Active Fundraisers - Square Game Fundraiser{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h1 class="display-4">Welcome to Square Game Fundraisers</h1>
+        <p class="lead">Support our furry friends by sponsoring a square and adding your favorite song!</p>
+    </div>
+    
+    {% if fundraisers %}
+        <div class="row g-4">
+            {% for fundraiser in fundraisers %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm hover-shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-calendar-event"></i> {{ fundraiser.name }}
+                            </h5>
+                            {% if fundraiser.description %}
+                                <p class="card-text">{{ fundraiser.description }}</p>
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {{ fundraiser.progress_percentage }}%">
+                                        {{ fundraiser.sold_squares }} / {{ fundraiser.total_squares }} sold
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('public.view_fundraiser', slug=fundraiser.slug) }}" 
+                                   class="btn btn-primary">
+                                    <i class="bi bi-grid-3x3"></i> View Grid
+                                </a>
+                                <a href="{{ url_for('public.view_playlist', slug=fundraiser.slug) }}" 
+                                   class="btn btn-outline-primary">
+                                    <i class="bi bi-music-note-list"></i> View Playlist
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-footer text-muted">
+                            <small>
+                                <i class="bi bi-grid"></i> {{ fundraiser.grid_rows }}x{{ fundraiser.grid_columns }} grid
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            <h4 class="alert-heading">No Active Fundraisers</h4>
+            <p>There are currently no active fundraisers. Please check back later!</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.hover-shadow {
+    transition: all 0.3s ease;
+}
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+</style>
+{% endblock %} 

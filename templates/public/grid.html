@@ -1,0 +1,469 @@
+{% extends "base.html" %}
+
+{% block title %}{{ fundraiser.name }} - Grid View{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1>{{ fundraiser.name }}</h1>
+        {% if fundraiser.description %}
+            <p class="lead">{{ fundraiser.description }}</p>
+        {% endif %}
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="mb-4">
+        <div class="progress" style="height: 30px;">
+            <div class="progress-bar bg-success" role="progressbar" 
+                 style="width: {{ fundraiser.progress_percentage }}%">
+                {{ fundraiser.sold_squares }} / {{ fundraiser.total_squares }} squares sold ({{ fundraiser.progress_percentage }}%)
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="text-center mb-4">
+        <a href="{{ url_for('public.view_playlist', slug=fundraiser.slug) }}" class="btn btn-outline-primary">
+            <i class="bi bi-music-note-list"></i> View Playlist
+        </a>
+        <button class="btn btn-outline-secondary" onclick="window.print()">
+            <i class="bi bi-printer"></i> Print Grid
+        </button>
+    </div>
+    
+    <!-- Grid -->
+    <div class="grid-container">
+        <div class="table-responsive">
+            <table class="table table-bordered grid-table">
+                <tbody>
+                    {% for row in grid %}
+                        <tr>
+                            {% for square in row %}
+                                <td class="grid-square {% if square and square.is_sold %}sold{% else %}available{% endif %}"
+                                    data-square-id="{{ square.id if square else '' }}"
+                                    {% if square %}data-bs-toggle="tooltip" data-bs-placement="top" 
+                                    title="Square {{ square.position_number }}{% if square.animal_name %} - {{ square.animal_name }}{% endif %}{% if square.is_sold %} (Sponsored{% if square.purchaser_name %} by {{ square.purchaser_name }}{% endif %}){% else %} - Available{% endif %}"{% endif %}>
+                                    <div class="square-content">
+                                    <div class="square-number">{{ square.position_number if square else '' }}</div>
+                                    
+                                    {% if square %}
+                                        <!-- Status badges -->
+                                        {% if square.is_sold %}
+                                            <div class="sold-badge" title="Sponsored">
+                                                <i class="bi bi-check"></i>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        {% if square.song_title %}
+                                            <div class="song-badge" title="Song included">
+                                                <i class="bi bi-music-note"></i>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <!-- Main image -->
+                                        {% if square.display_thumbnail_path %}
+                                            <img src="{{ square.display_thumbnail_path | image_url }}" 
+                                                 alt="{{ square.display_name or (fundraiser.content_type + ' photo') }}" 
+                                                 class="content-thumbnail"
+                                                 loading="lazy">
+                                        {% else %}
+                                            <div class="no-image">
+                                                <i class="bi bi-camera"></i>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <!-- Content name -->
+                                        {% if square.display_name %}
+                                            <div class="content-name" title="{{ square.display_name }}">
+                                                {{ square.display_name[:12] }}{% if square.display_name|length > 12 %}...{% endif %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <!-- Status info -->
+                                        {% if square.is_sold %}
+                                            {% if square.purchaser_name %}
+                                                <div class="purchaser-name" title="Sponsored by {{ square.purchaser_name }}">
+                                                    {{ square.purchaser_name[:10] }}{% if square.purchaser_name|length > 10 %}...{% endif %}
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="available-label">Available</div>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+    
+    <!-- Legend -->
+    <div class="mt-4">
+        <div class="row justify-content-center">
+            <div class="col-auto">
+                <span class="badge bg-success me-2">Sold</span>
+                <span class="badge bg-secondary me-2">Available</span>
+                <span><i class="bi bi-music-note"></i> = Song provided</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Contact Info -->
+    <div class="text-center mt-5">
+        <div class="alert alert-info">
+            <h5>Want to sponsor a {{ fundraiser.square_label.lower() }}?</h5>
+            <p class="mb-0">{{ fundraiser.contact_text }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Square Detail Modal -->
+<div class="modal fade" id="squareModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Square Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="squareModalBody">
+                <!-- Content loaded via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{{ fundraiser.contact_url | ensure_url_protocol }}" 
+                   class="btn btn-primary" target="_blank" rel="noopener noreferrer">
+                    <i class="bi bi-facebook"></i> {{ fundraiser.contact_button_text }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.grid-container {
+    overflow-x: auto;
+}
+
+.grid-table {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.grid-square {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    padding: 5px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.grid-square:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    z-index: 10;
+    border-color: #007bff;
+}
+
+.grid-square.sold {
+    background-color: #d4edda;
+    border-color: #28a745;
+}
+
+.grid-square.available {
+    background-color: #f8f9fa;
+    border-color: #6c757d;
+}
+
+.grid-square.sold:hover {
+    border-color: #20c997;
+}
+
+.square-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.square-number {
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #fff;
+    background-color: rgba(0,0,0,0.7);
+    padding: 2px 4px;
+    border-radius: 3px;
+    z-index: 2;
+}
+
+.content-thumbnail, .animal-thumbnail {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 8px;
+    margin: 2px;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.content-thumbnail:hover, .animal-thumbnail:hover {
+    transform: scale(1.05);
+}
+
+.no-image {
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    border-radius: 8px;
+    color: #6c757d;
+    border: 2px dashed #adb5bd;
+    margin: 2px;
+}
+
+.content-name, .animal-name {
+    font-size: 11px;
+    font-weight: bold;
+    margin-top: 2px;
+}
+
+.purchaser-name {
+    font-size: 10px;
+    color: #28a745;
+    margin-top: 2px;
+}
+
+.available-label {
+    font-size: 10px;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.song-info {
+    position: absolute;
+    bottom: 2px;
+    right: 5px;
+    color: #007bff;
+}
+
+/* Status badges */
+.sold-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #28a745;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    z-index: 3;
+}
+
+.song-badge {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    z-index: 3;
+}
+
+@media (max-width: 768px) {
+    .grid-square {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .animal-thumbnail {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .no-image {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .square-number {
+        font-size: 10px;
+        padding: 1px 3px;
+    }
+}
+
+@media (max-width: 576px) {
+    .grid-square {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .animal-thumbnail {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .no-image {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .animal-name {
+        font-size: 9px;
+    }
+    
+    .purchaser-name {
+        font-size: 8px;
+    }
+}
+
+@media print {
+    .navbar, footer, .btn, .alert {
+        display: none !important;
+    }
+    
+    .grid-square {
+        break-inside: avoid;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Click handler for squares
+    document.querySelectorAll('.grid-square').forEach(function(square) {
+        square.addEventListener('click', function() {
+            const squareId = this.dataset.squareId;
+            if (squareId) {
+                // Hide any open tooltips before showing modal
+                tooltipList.forEach(tooltip => tooltip.hide());
+                
+                // Fetch square details via API
+                fetch(`/api/square/${squareId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        showSquareDetails(data);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching square details:', error);
+                    });
+            }
+        });
+    });
+});
+
+function showSquareDetails(square) {
+    let content = `
+        <div class="text-center">
+            <h6>Square #${square.position_number}</h6>
+    `;
+    
+    // Display content photo if available
+    if (square.content_photo_url || square.animal_photo_url) {
+        const photoUrl = square.content_photo_url || square.animal_photo_url;
+        const altText = square.content_name || square.animal_name || 'Photo';
+        content += `
+            <div class="mb-3">
+                <img src="${photoUrl}" 
+                     alt="${altText}" 
+                     class="img-fluid rounded"
+                     style="max-width: 300px; max-height: 300px; object-fit: cover;"
+                     onerror="this.style.display='none'">
+            </div>
+        `;
+    } else {
+        content += `
+            <div class="mb-3">
+                <div class="no-image-large">
+                    <i class="bi bi-camera" style="font-size: 3rem; color: #6c757d;"></i>
+                    <p class="text-muted mt-2">No photo yet</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    const contentName = square.content_name || square.animal_name;
+    if (contentName) {
+        content += `<h5 class="text-primary">${contentName}</h5>`;
+    } else {
+        content += `<h5 class="text-muted">Name not set</h5>`;
+    }
+    
+    const contentDescription = square.content_description || square.animal_description;
+    if (contentDescription) {
+        content += `
+            <div class="mb-3">
+                <h6>About this item:</h6>
+                <p class="text-start">${contentDescription}</p>
+            </div>
+        `;
+    }
+    
+    if (square.is_sold) {
+        content += `
+            <div class="alert alert-success">
+                <h6><i class="bi bi-check-circle-fill"></i> Square Sponsored!</h6>
+                <strong>Sponsored by:</strong> ${square.purchaser_name || 'Anonymous'}
+            </div>
+        `;
+        
+        if (square.song_title) {
+            content += `
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-music-note-beamed"></i> Song Contribution</h6>
+                    <strong>Song:</strong> ${square.song_title}<br>
+                    ${square.song_artist ? `<strong>Artist:</strong> ${square.song_artist}` : ''}
+                </div>
+            `;
+        }
+    } else {
+        content += `
+            <div class="alert alert-secondary">
+                <h6><i class="bi bi-heart"></i> Available for Sponsorship!</h6>
+                <p class="mb-0">Contact us to sponsor this square!</p>
+            </div>
+        `;
+    }
+    
+    content += '</div>';
+    
+    document.getElementById('squareModalBody').innerHTML = content;
+    const modal = new bootstrap.Modal(document.getElementById('squareModal'));
+    modal.show();
+}
+</script>
+{% endblock %} 

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}{{ fundraiser.name }} - Playlist{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h1>{{ fundraiser.name }} - Playlist</h1>
+        <p class="lead">{{ fundraiser.collection_name }} created by our supporters!</p>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="text-center mb-4">
+        <a href="{{ url_for('public.view_fundraiser', slug=fundraiser.slug) }}" class="btn btn-outline-primary">
+            <i class="bi bi-grid-3x3"></i> View Grid
+        </a>
+    </div>
+    
+    {% if songs %}
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-music-note-list"></i> 
+                            {{ songs|length }} Songs in the {{ fundraiser.collection_name }}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            {% for square in songs %}
+                                <div class="list-group-item">
+                                    <div class="row align-items-center">
+                                        <div class="col-auto">
+                                            <div class="song-number">{{ loop.index }}</div>
+                                        </div>
+                                        <div class="col">
+                                            <h6 class="mb-1">{{ square.song_title }}</h6>
+                                            {% if square.song_artist %}
+                                                <p class="mb-1 text-muted">by {{ square.song_artist }}</p>
+                                            {% endif %}
+                                            <small class="text-muted">
+                                                Sponsored by {{ square.purchaser_name }} 
+                                                {% if square.animal_name %}
+                                                    for {{ square.animal_name }} (Square #{{ square.position_number }})
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <p class="text-muted">
+                        <i class="bi bi-info-circle"></i> 
+                        Create this playlist on your favorite streaming service and share it with the community!
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="alert alert-info text-center" role="alert">
+                    <h4 class="alert-heading">No Songs Yet!</h4>
+                    <p>The {{ fundraiser.collection_name.lower() }} is empty. Songs will appear here as supporters purchase squares and add their favorite tunes.</p>
+                    <hr>
+                    <a href="{{ url_for('public.view_fundraiser', slug=fundraiser.slug) }}" class="btn btn-primary">
+                        View Available Squares
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.song-number {
+    width: 40px;
+    height: 40px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.list-group-item {
+    transition: background-color 0.3s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %} 
