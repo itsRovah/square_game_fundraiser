@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ square.fundraiser.square_label }} #{{ square.position_number }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        Edit {{ square.fundraiser.square_label }} #{{ square.position_number }}
+                        <small class="text-muted">(Row {{ square.row + 1 }}, Column {{ square.column + 1 }})</small>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Current Image -->
+                        {% if square.display_photo_path %}
+                        <div class="mb-3 text-center">
+                            <p class="text-muted mb-2">Current Photo:</p>
+                            <img src="{{ square.display_photo_path | image_url }}" 
+                                 alt="Current photo" class="img-thumbnail" style="max-width: 300px;">
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Content Information -->
+                        <fieldset class="mb-4">
+                            <legend class="h5">{{ square.fundraiser.content_type }} Information</legend>
+                            
+                            <div class="mb-3">
+                                {{ form.content_photo.label(class="form-label") }}
+                                {{ form.content_photo(class="form-control", accept="image/*") }}
+                                <small class="text-muted">Image will be automatically cropped to square format</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.content_name.label(class="form-label") }}
+                                {% if form.content_name.data %}
+                                    {{ form.content_name(class="form-control") }}
+                                {% else %}
+                                    {{ form.content_name(class="form-control", value=square.display_name) }}
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.content_description.label(class="form-label") }}
+                                {% if form.content_description.data %}
+                                    {{ form.content_description(class="form-control", rows="3") }}
+                                {% else %}
+                                    {{ form.content_description(class="form-control", rows="3", value=square.display_description or '') }}
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Show legacy fields for migration if they exist but no new content -->
+                            {% if square.animal_name and not square.content_name %}
+                            <div class="alert alert-warning">
+                                <h6><i class="bi bi-info-circle"></i> Legacy Data Migration</h6>
+                                <p class="mb-2">This square has legacy animal data. You can migrate it by updating the fields above.</p>
+                                
+                                <div class="mb-2">
+                                    {{ form.animal_photo.label(class="form-label") }}
+                                    {{ form.animal_photo(class="form-control", accept="image/*") }}
+                                </div>
+                                
+                                <div class="mb-2">
+                                    {{ form.animal_name.label(class="form-label") }}
+                                    {{ form.animal_name(class="form-control") }}
+                                </div>
+                                
+                                <div class="mb-0">
+                                    {{ form.animal_description.label(class="form-label") }}
+                                    {{ form.animal_description(class="form-control", rows="2") }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </fieldset>
+                        
+                        <!-- Sale Information -->
+                        <fieldset class="mb-4">
+                            <legend class="h5">Sponsorship Information</legend>
+                            
+                            <div class="mb-3 form-check">
+                                {{ form.is_sold(class="form-check-input", onclick="toggleSoldFields(this)") }}
+                                {{ form.is_sold.label(class="form-check-label") }}
+                            </div>
+                            
+                            <div id="soldFields" style="display: {{ 'block' if square.is_sold else 'none' }};">
+                                <div class="mb-3">
+                                    {{ form.purchaser_name.label(class="form-label") }}
+                                    {{ form.purchaser_name(class="form-control") }}
+                                </div>
+                                
+                                <!-- Song/Contribution Fields -->
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="enableSongFields" 
+                                               {% if square.song_title or square.fundraiser.enable_song_contributions %}checked{% endif %}
+                                               onchange="toggleSongFields(this)">
+                                        <label class="form-check-label" for="enableSongFields">
+                                            Include song/content contribution
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div id="songFields" style="display: {% if square.song_title or square.fundraiser.enable_song_contributions %}block{% else %}none{% endif %};">
+                                    <div class="mb-3">
+                                        {{ form.song_title.label(class="form-label") }}
+                                        {{ form.song_title(class="form-control", placeholder="Song title, book name, or content item") }}
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        {{ form.song_artist.label(class="form-label") }}
+                                        {{ form.song_artist(class="form-control", placeholder="Artist, author, or contributor") }}
+                                    </div>
+                                </div>
+                                
+                                {% if square.purchase_date %}
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i> 
+                                    Sponsored on {{ square.purchase_date.strftime('%B %d, %Y at %I:%M %p') }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </fieldset>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin.manage_fundraiser', fundraiser_id=square.fundraiser_id) }}" 
+                               class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Back to Grid
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleSoldFields(checkbox) {
+        const soldFields = document.getElementById('soldFields');
+        soldFields.style.display = checkbox.checked ? 'block' : 'none';
+    }
+
+    function toggleSongFields(checkbox) {
+        const songFields = document.getElementById('songFields');
+        songFields.style.display = checkbox.checked ? 'block' : 'none';
+    }
+</script>
+
+<div id="imagePreview"></div>
+{% endblock %} 

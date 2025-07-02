@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Paw-fect Playlist{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Admin Dashboard</h1>
+        <a href="{{ url_for('admin.create_fundraiser') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> New Fundraiser
+        </a>
+    </div>
+    
+    {% if fundraisers %}
+        <div class="row g-4">
+            {% for fundraiser in fundraisers %}
+                <div class="col-lg-6">
+                    <div class="card h-100 {% if fundraiser.is_archived %}border-secondary{% endif %}">
+                        <div class="card-header {% if fundraiser.is_active %}bg-primary text-white{% else %}bg-secondary text-white{% endif %}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ fundraiser.name }}</h5>
+                                <div>
+                                    {% if fundraiser.is_archived %}
+                                        <span class="badge bg-dark">Archived</span>
+                                    {% elif fundraiser.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Inactive</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            {% if fundraiser.description %}
+                                <p class="card-text">{{ fundraiser.description }}</p>
+                            {% endif %}
+                            
+                            <div class="mb-3">
+                                <strong>URL:</strong> 
+                                <a href="{{ url_for('public.view_fundraiser', slug=fundraiser.slug) }}" target="_blank">
+                                    /fundraiser/{{ fundraiser.slug }}
+                                </a>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong>Grid Size:</strong> {{ fundraiser.grid_rows }}x{{ fundraiser.grid_columns }}
+                                ({{ fundraiser.total_squares }} squares)
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong>Progress:</strong>
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {{ fundraiser.progress_percentage }}%">
+                                        {{ fundraiser.sold_squares }} / {{ fundraiser.total_squares }} sold
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a href="{{ url_for('admin.manage_fundraiser', fundraiser_id=fundraiser.id) }}" 
+                                   class="btn btn-primary btn-sm">
+                                    <i class="bi bi-grid-3x3"></i> Manage Grid
+                                </a>
+                                <a href="{{ url_for('admin.edit_fundraiser', fundraiser_id=fundraiser.id) }}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                                <a href="{{ url_for('admin.export_data', fundraiser_id=fundraiser.id) }}" 
+                                   class="btn btn-outline-success btn-sm">
+                                    <i class="bi bi-download"></i> Export
+                                </a>
+                                <a href="{{ url_for('admin.draw_winner', fundraiser_id=fundraiser.id) }}" 
+                                   class="btn btn-outline-warning btn-sm">
+                                    <i class="bi bi-dice-3"></i> Draw Winner
+                                </a>
+                                {% if not fundraiser.is_archived %}
+                                    <form method="POST" action="{{ url_for('admin.archive_fundraiser', fundraiser_id=fundraiser.id) }}" 
+                                          class="d-inline" onsubmit="return confirm('Are you sure you want to archive this fundraiser?');">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-archive"></i> Archive
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <form method="POST" action="{{ url_for('admin.delete_fundraiser', fundraiser_id=fundraiser.id) }}" 
+                                          class="d-inline" onsubmit="return confirmDelete('{{ fundraiser.name }}');">
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="bi bi-trash"></i> Delete Permanently
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer text-muted">
+                            Created: {{ fundraiser.created_at.strftime('%B %d, %Y') }}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            <h4 class="alert-heading">No Fundraisers Yet!</h4>
+            <p>Get started by creating your first fundraiser.</p>
+            <a href="{{ url_for('admin.create_fundraiser') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create First Fundraiser
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function confirmDelete(fundraiserName) {
+    // First confirmation
+    const confirmed = confirm(
+        '⚠️ PERMANENT DELETION ⚠️\n\n' +
+        'This will permanently delete the fundraiser and ALL associated data including:\n' +
+        '• All squares and their photos\n' +
+        '• All purchase records\n' +
+        '• All winner history\n\n' +
+        'This action CANNOT be undone!\n\n' +
+        'Are you sure you want to continue?'
+    );
+    
+    if (!confirmed) {
+        return false;
+    }
+    
+    // Second confirmation - require typing the fundraiser name
+    const userInput = prompt('Type the fundraiser name to confirm deletion:', '');
+    
+    if (userInput !== fundraiserName) {
+        alert('Fundraiser name does not match. Deletion cancelled.');
+        return false;
+    }
+    
+    return true;
+}
+</script>
+{% endblock %} 

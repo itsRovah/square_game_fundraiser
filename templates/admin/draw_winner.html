@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}Draw Winner - {{ fundraiser.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-trophy"></i> Draw Winner - {{ fundraiser.name }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Fundraiser Statistics</h5>
+                            {% set sold_squares = fundraiser.squares.filter_by(is_sold=True).count() %}
+                            {% set total_squares = fundraiser.grid_rows * fundraiser.grid_columns %}
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Total Squares:</span>
+                                    <strong>{{ total_squares }}</strong>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Purchased Squares:</span>
+                                    <strong>{{ sold_squares }}</strong>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Available Squares:</span>
+                                    <strong>{{ total_squares - sold_squares }}</strong>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Previous Winners:</span>
+                                    <strong>{{ fundraiser.winners.count() }}</strong>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="text-center">
+                                <i class="fas fa-dice fa-4x text-primary mb-3"></i>
+                                <p class="text-muted">Draw a random winner from purchased squares</p>
+                                
+                                {% if sold_squares == 0 %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    No sold squares available to draw from!
+                                </div>
+                                {% else %}
+                                <form method="POST">
+                                    {{ form.hidden_tag() }}
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.notes.id }}" class="form-label">Notes (Optional)</label>
+                                        {{ form.notes(class="form-control", rows="3", placeholder="Add any notes about this draw...") }}
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-dice"></i> Draw Winner
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('admin.manage_fundraiser', fundraiser_id=fundraiser.id) }}" 
+                           class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Fundraiser
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

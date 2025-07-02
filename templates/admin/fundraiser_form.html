@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">{{ title }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Basic Information -->
+                        <div class="mb-4">
+                            <h5 class="text-primary border-bottom pb-2">Basic Information</h5>
+                            
+                            <div class="mb-3">
+                                {{ form.name.label(class="form-label") }}
+                                {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.description.label(class="form-label") }}
+                                {{ form.description(class="form-control", rows="3") }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.slug.label(class="form-label") }}
+                                {{ form.slug(class="form-control" + (" is-invalid" if form.slug.errors else "")) }}
+                                <small class="text-muted">This will be used in the URL: /fundraiser/{{ form.slug.data or 'your-slug' }}</small>
+                                {% if form.slug.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.slug.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Content Configuration -->
+                        <div class="mb-4">
+                            <h5 class="text-primary border-bottom pb-2">Content Configuration</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.content_type.label(class="form-label") }}
+                                        {{ form.content_type(class="form-control", placeholder="e.g., Animal, Prize, Item") }}
+                                        <small class="text-muted">{{ form.content_type.description }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.square_label.label(class="form-label") }}
+                                        {{ form.square_label(class="form-control", placeholder="e.g., Square, Spot, Space") }}
+                                        <small class="text-muted">{{ form.square_label.description }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.collection_name.label(class="form-label") }}
+                                {{ form.collection_name(class="form-control", placeholder="e.g., Playlist, Gallery, List") }}
+                                <small class="text-muted">{{ form.collection_name.description }}</small>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                {{ form.enable_song_contributions(class="form-check-input") }}
+                                {{ form.enable_song_contributions.label(class="form-check-label") }}
+                                <small class="text-muted d-block">{{ form.enable_song_contributions.description }}</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Contact & Messaging -->
+                        <div class="mb-4">
+                            <h5 class="text-primary border-bottom pb-2">Contact & Messaging</h5>
+                            
+                            <div class="mb-3">
+                                {{ form.contact_text.label(class="form-label") }}
+                                {{ form.contact_text(class="form-control", rows="2", placeholder="Contact us to purchase an available square!") }}
+                                <small class="text-muted">{{ form.contact_text.description }}</small>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.contact_url.label(class="form-label") }}
+                                        {{ form.contact_url(class="form-control", placeholder="https://facebook.com") }}
+                                        <small class="text-muted">{{ form.contact_url.description }}</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.contact_button_text.label(class="form-label") }}
+                                        {{ form.contact_button_text(class="form-control", placeholder="Contact us to sponsor") }}
+                                        <small class="text-muted">{{ form.contact_button_text.description }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form.success_message.label(class="form-label") }}
+                                {{ form.success_message(class="form-control", rows="2", placeholder="Thank you for your support!") }}
+                                <small class="text-muted">{{ form.success_message.description }}</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Grid Configuration -->
+                        {% if not fundraiser %}
+                        <div class="mb-4">
+                            <h5 class="text-primary border-bottom pb-2">Grid Configuration</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.grid_rows.label(class="form-label") }}
+                                        {{ form.grid_rows(class="form-control" + (" is-invalid" if form.grid_rows.errors else "")) }}
+                                        {% if form.grid_rows.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form.grid_rows.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.grid_columns.label(class="form-label") }}
+                                        {{ form.grid_columns(class="form-control" + (" is-invalid" if form.grid_columns.errors else "")) }}
+                                        {% if form.grid_columns.errors %}
+                                            <div class="invalid-feedback">
+                                                {% for error in form.grid_columns.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> Grid size cannot be changed after creation.
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="mb-4">
+                            <h5 class="text-primary border-bottom pb-2">Grid Configuration</h5>
+                            <div class="alert alert-secondary">
+                                <strong>Grid Size:</strong> {{ fundraiser.grid_rows }}×{{ fundraiser.grid_columns }} (cannot be changed)
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Status -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.is_active(class="form-check-input") }}
+                                {{ form.is_active.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> {{ 'Create' if not fundraiser else 'Update' }} Fundraiser
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
